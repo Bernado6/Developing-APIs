@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Body
 from pydantic import BaseModel
 from typing import Optional
@@ -15,10 +15,17 @@ class Post(BaseModel):
 
 my_posts =[{'Title': 'Top ten Technologies to learn in 2024', 'Content': 'Look at this tech that will change your life in 2024', 'Published': True, 'Rating': None, "id": 1}, {'Title': 'Top ten artist in 2024', 'Content': 'Look at this best music in 2024', 'Published': True, 'Rating': None, "id": 2}]
 
+
+def find_post(id):
+    for p in my_posts:
+        if p['id'] == id:
+            return p
+
 @app.get("/")
 async def root():
     return {"Message": "Welcome to my APIs!==================="}
 
+# Http Get Method: It gets all the content or multiples objects
 @app.get("/posts")
 async def get_posts():
     return {"data": my_posts}
@@ -28,7 +35,9 @@ async def get_posts():
 # async def create_post(payload: dict = Body(...)):
 #     print(payload)
 #     return {"new_post": f"title: {payload['Title']} Content: {payload['Content']}"}
-@app.post("/posts")
+
+# Http POST Method: creating a post
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
 async def create_post(post: Post):
     
     # print(f"Title: {new_post.Title}")
@@ -43,7 +52,21 @@ async def create_post(post: Post):
     
     return {"data" : post_dict}
 
+@app.get("/posts/latest")
+def get_latest():
+    post = my_posts[len(my_posts)-1]
+    return {"Latest Post": post }
+
+
+# Http Get Method: Getting just one post
 @app.get("/posts/{id}")
-def get_post(id):
-    print(id)
-    return {"post_detail": f"Here is a retrieved post of id {id}"}
+def get_post(id: int, response: Response):
+    post = find_post(id)
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Post with the id Number: {id} was not found")
+    #    response.status_code = status.HTTP_404_NOT_FOUND
+    #    return {f"Post with the id Number {id} was not found"}
+    print(type(id))
+    print(post)
+    return {"post_detail": post}
