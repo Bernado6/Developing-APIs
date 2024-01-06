@@ -70,3 +70,33 @@ def get_post(id: int, response: Response):
     print(type(id))
     print(post)
     return {"post_detail": post}
+
+def find_index_post(id):
+    for i, p in enumerate(my_posts):
+        if p["id"] == id:
+            return i
+        
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(id: int):
+    index = find_index_post(id)
+    if index is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND
+                            ,detail=f"The  post with the id {id} does not exist")
+    else:
+        my_posts.pop(index)
+    return {"msg":"Deleted Successfully!"}
+
+
+@app.put("/posts/{id}")
+def update_post(id: int, post: Post):
+    index = find_index_post(id)
+    if index is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND
+                            ,detail=f"The  post with the id {id} does not exist")
+    post_dict = post.dict()
+    post_dict['id'] = id
+    my_posts[index] = post_dict
+    return {"msg": "Updated successfully!", "data": post_dict}
+    
+    
+    
